@@ -1,0 +1,116 @@
+{
+  // --- Global Application/Window Settings ---
+  "app_title": "My Super Drawing App",
+  "default_theme": "dark_mode",
+  "config_reload_on_change": true, // Like Waybar's "reload_style_on_change"
+  "main_window_icon": "app_icon.svg",
+
+  // --- Main Layout Definition (e.g., for a QMainWindow) ---
+  // This defines where toolbars, status bars, and dock widgets go.
+  "main_window_layout": {
+    "top_toolbar_zone": ["main_tools_bar", "file_actions_bar"], // List of toolbar IDs
+    "left_dock_area": ["layers_panel", "properties_panel"],   // List of dock widget IDs
+    "right_dock_area": ["history_panel"],
+    "bottom_status_bar": ["status_label", "zoom_slider"] // List of component IDs for the status bar
+  },
+
+  // --- Toolbar Definitions ---
+  "toolbars": {
+    "main_tools_bar": {
+      "orientation": "horizontal",
+      "visible": true,
+      "elements": ["tool_pen", "tool_eraser", "tool_brush"] // Component IDs to place in this toolbar
+    },
+    "file_actions_bar": {
+      "orientation": "horizontal",
+      "visible": true,
+      "elements": ["file_save", "file_open", "file_new"]
+    }
+  },
+
+  // --- Dock Widget Definitions ---
+  "dock_widgets": {
+    "layers_panel": {
+      "title": "Layers",
+      "initial_position": "left", // Corresponds to QMainWindow::DockWidgetArea
+      "initial_visibility": true,
+      "plugin_widget_class": "plugin.core_ui.LayersWidget" // Path to the Python class for this widget
+    },
+    "properties_panel": {
+      "title": "Properties",
+      "initial_position": "left",
+      "initial_visibility": false,
+      "plugin_widget_class": "plugin.core_ui.PropertiesWidget"
+    }
+  },
+
+  // --- Individual GUI Component Definitions (Buttons, Labels, Sliders - your "modules") ---
+  "components": {
+    // --- Tool Buttons ---
+    "tool_pen": {
+      "type": "toggle_button", // Explicit widget type (e.g., QToolButton)
+      "icon": "icons/pen.svg",
+      "text": "Pen",
+      "tooltip": "Activate Pen Tool (P)",
+      "on-toggled": "drawing.activate_tool pen" // Command: 'drawing.activate_tool', Arg: 'pen'
+    },
+    "tool_eraser": {
+      "type": "toggle_button",
+      "icon": "icons/eraser.svg",
+      "text": "Eraser",
+      "tooltip": "Activate Eraser Tool (E)",
+      "on-toggled": "drawing.activate_tool eraser"
+    },
+
+    // --- File Actions (can be in menu AND toolbar via QAction) ---
+    "file_save": {
+      "type": "action", // This creates a QAction
+      "text": "Save",
+      "icon": "icons/save.svg",
+      "shortcut": "Ctrl+S", // This automatically registers a hotkey
+      "tooltip": "Save current document",
+      "on-triggered": "file.save_document" // Command: 'file.save_document'
+    },
+    "file_open": {
+      "type": "action",
+      "text": "Open...",
+      "icon": "icons/open.svg",
+      "shortcut": "Ctrl+O",
+      "on-triggered": "file.open_document"
+    },
+
+    // --- Status Bar Elements ---
+    "status_label": {
+      "type": "label",
+      "initial_text": "Ready.",
+      "prefix": "Status: ",
+      "text_template": "{status_message}" // For dynamic updates, like Waybar's "format"
+    },
+    "zoom_slider": {
+      "type": "slider",
+      "orientation": "horizontal",
+      "min_value": 10,
+      "max_value": 500,
+      "default_value": 100,
+      "on-value-changed": "canvas.set_zoom" // Command: 'canvas.set_zoom', Arg: the slider's current value
+    },
+
+    // --- Custom Plugin Components (like your Waybar example modules) ---
+    "plugin_omarchy_button": { // Renamed for clarity on belonging to a plugin
+      "type": "button",
+      "icon": "icons/omarchy.svg", // Or if your 'format' can render complex HTML, use that
+      "text": "<span font='omarchy'>\ue900</span>", // Example of rich text for a button label
+      "tooltip": "Omarchy Menu\n\nSuper + Alt + Space",
+      "on-click": "plugin.omarchy.show_menu", // Command from a plugin
+      "on-right-click": "core.execute_shell_command xdg-terminal-exec" // Generic shell execution command
+    },
+    "plugin_update_indicator": {
+      "type": "label",
+      "text": "",
+      "tooltip": "Omarchy update available",
+      "update_command": "plugin.omarchy.check_for_updates", // Command to run periodically
+      "update_interval_ms": 3600000, // 1 hour
+      "on-click": "plugin.omarchy.launch_updater"
+    }
+  }
+}

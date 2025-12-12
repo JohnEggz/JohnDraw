@@ -1,0 +1,22 @@
+{
+  "workspace_title": "Default",
+  "main_window_layout": "horizontal_main",
+  // Top layout
+  "horizontal_main": [
+    "vertical_left",
+    "vertical_right"
+  ],
+  // Left
+  "vertical_left": [
+    "current_question_image",
+    "horizontal_2"
+  ],
+  "horizontal_2": [
+    "line_list",
+    "context_image_list"
+  ],
+  // Right
+  "vertical_right": [
+    ""
+  ]
+}
