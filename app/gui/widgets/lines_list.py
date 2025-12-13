@@ -18,7 +18,6 @@ class LineButton(QFrame):
         self.setFixedSize(160, 120)
         self.setCursor(Qt.CursorShape.PointingHandCursor)
         
-        # Simple styling
         self.default_style = """
             LineButton { 
                 background-color: #ffffff; 
@@ -35,12 +34,11 @@ class LineButton(QFrame):
         """
         self.setStyleSheet(self.default_style)
 
-        # Layout for Text Label
         self.layout = QVBoxLayout(self)
         self.label = QLabel(f"Line {index + 1}")
         self.label.setStyleSheet("background: transparent; color: #555; font-weight: bold;")
         self.layout.addWidget(self.label)
-        self.layout.addStretch() # Push label to top
+        self.layout.addStretch() 
 
     def set_active(self, active: bool):
         self.is_active = active
@@ -49,23 +47,20 @@ class LineButton(QFrame):
 
     def set_strokes(self, strokes):
         self.strokes = strokes
-        self.update() # Trigger repaint
+        self.update() 
 
     def mousePressEvent(self, event: QMouseEvent):
         self.clicked.emit()
 
     def paintEvent(self, event):
-        # 1. Draw standard frame/background
         super().paintEvent(event)
         
-        # 2. Draw Mini Preview
         if not self.strokes:
             return
 
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
 
-        # Calculate Bounds
         min_x, min_y = float('inf'), float('inf')
         max_x, max_y = float('-inf'), float('-inf')
         
@@ -76,19 +71,16 @@ class LineButton(QFrame):
                 if p.y() < min_y: min_y = p.y()
                 if p.y() > max_y: max_y = p.y()
 
-        # Scaling Logic
         content_w = max_x - min_x
         content_h = max_y - min_y
-        if content_w <= 0 or content_h <= 0: return # Single point
+        if content_w <= 0 or content_h <= 0: return 
 
-        # We draw in the bottom area (padding 10px from sides, 30px from top)
         draw_rect = self.rect().adjusted(10, 30, -10, -10)
         
         scale_x = draw_rect.width() / content_w
         scale_y = draw_rect.height() / content_h
         scale = min(scale_x, scale_y)
 
-        # Center
         scaled_w = content_w * scale
         scaled_h = content_h * scale
         offset_x = draw_rect.left() + (draw_rect.width() - scaled_w) / 2
@@ -98,8 +90,7 @@ class LineButton(QFrame):
         painter.scale(scale, scale)
         painter.translate(-min_x, -min_y)
 
-        # Draw
-        pen = QPen(Qt.GlobalColor.black, 2.0 / scale) # Maintain constant visual width
+        pen = QPen(Qt.GlobalColor.black, 2.0 / scale) 
         painter.setPen(pen)
         
         for stroke in self.strokes:
@@ -111,15 +102,13 @@ class LinesList(QWidget):
     def __init__(self):
         super().__init__()
         self.store = None
-        self.buttons = {} # { index: LineButton }
+        self.buttons = {} 
         self.next_id = 0
         self.current_active = 0
 
-        # Main Layout
         self.main_layout = QVBoxLayout(self)
         self.main_layout.setContentsMargins(0,0,0,0)
 
-        # Add Button
         self.btn_add = QPushButton("+ New Line")
         self.btn_add.setStyleSheet("""
             QPushButton {
@@ -130,14 +119,12 @@ class LinesList(QWidget):
         self.btn_add.clicked.connect(self.add_line)
         self.main_layout.addWidget(self.btn_add)
 
-        # Scroll Area
         self.scroll = QScrollArea()
         self.scroll.setWidgetResizable(True)
         self.scroll.setFrameShape(QFrame.Shape.NoFrame)
         self.scroll.setStyleSheet("background: transparent;")
         self.main_layout.addWidget(self.scroll)
 
-        # Container
         self.container = QWidget()
         self.container_layout = QVBoxLayout(self.container)
         self.container_layout.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignHCenter)
@@ -149,16 +136,22 @@ class LinesList(QWidget):
     def set_state_store(self, store):
         self.store = store
         self.store.subscribe("canvas_data", self.on_canvas_data_update)
-        self.on_line_click(0)
+        # Also subscribe to active_line so we restore selection
+        self.store.subscribe("active_line", self.setActiveLine)
 
     def on_canvas_data_update(self, all_data):
         """
-        Called when VectorCanvas pushes new data.
-        all_data = { 0: [...], 1: [...] }
+        Called when store updates. Ensures buttons exist for all data.
         """
         if not isinstance(all_data, dict): return
         
         for index, strokes in all_data.items():
+            # --- FIX: Create missing buttons on the fly ---
+            # If data exists for Line 5, but we only have Line 1, create lines 2-5.
+            while index >= self.next_id:
+                self.add_line()
+            # ----------------------------------------------
+
             if index in self.buttons:
                 self.buttons[index].set_strokes(strokes)
 
@@ -171,7 +164,11 @@ class LinesList(QWidget):
         
         self.container_layout.addWidget(btn)
         self.buttons[line_id] = btn
-        self.on_line_click(line_id)
+        
+        # Don't auto-select here if we are just restoring state
+        # Only auto-select if user clicked the "Add" button manually
+        if self.sender() == self.btn_add:
+            self.on_line_click(line_id)
 
     def on_line_click(self, line_id):
         if self.store:

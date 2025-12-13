@@ -1,16 +1,15 @@
 import json
 import os
 import sys
+import re  # <--- NEW IMPORT
 import importlib
 import importlib.util
 from functools import partial
 from PyQt6.QtWidgets import QWidget, QLayout, QLabel
 from PyQt6.QtCore import Qt
 
-# Import parser
 from app.core.command_parser import parse_command
 
-# Optional TOML support
 try:
     import tomllib
 except ImportError:
@@ -20,12 +19,11 @@ except ImportError:
         tomllib = None
 
 class LayoutBuilder:
-    # --- UPDATED INIT: Add state_store ---
     def __init__(self, workspace_name, base_dir, plugin_dir, state_store, command_handler=None):
         self.workspace_name = workspace_name
         self.base_dir = base_dir
         self.plugin_dir = plugin_dir
-        self.state_store = state_store  # <--- Store reference
+        self.state_store = state_store
         self.command_handler = command_handler
         self.objects = {} 
         self.schema = {}
@@ -118,7 +116,7 @@ class LayoutBuilder:
             if prop.startswith("on_"):
                 self._connect_signal(instance, prop, val)
             elif prop in ["id", "objectName"]:
-                instance.setObjectName(val)
+                instance.setObjectName(value)
             else:
                 self._set_property(instance, prop, val)
 
@@ -135,22 +133,54 @@ class LayoutBuilder:
         if not setter:
             return
 
-        # --- FEATURE: State Binding ---
-        if isinstance(val, str) and val.startswith("$"):
-            var_key = val[1:] 
+        # Check if it's a string containing variables ($)
+        if isinstance(val, str) and "$" in val:
+            # Extract variables (e.g. $count, $active_line)
+            matches = re.findall(r'\$([a-zA-Z0-9_]+)', val)
             
-            def update_widget(new_value):
-                # FIX: Try raw value first (Essential for Lists/Dicts)
-                try:
-                    setter(new_value)
-                except TypeError:
-                    # Fallback: Convert to string (Useful for QLabels expecting text)
-                    setter(str(new_value))
+            if not matches:
+                # Contains $ but no valid variable name, treat as static
+                setter(val)
+                return
 
-            # Subscribe to the store
-            self.state_store.subscribe(var_key, update_widget)
+            # CASE 1: Exact Match (e.g. "$current_strokes")
+            # We preserve the raw object type (essential for Lists/Dicts/Images)
+            if len(matches) == 1 and val == f"${matches[0]}":
+                var_key = matches[0]
+                def update_direct(new_value):
+                    try:
+                        setter(new_value)
+                    except TypeError:
+                        setter(str(new_value))
+                
+                self.state_store.subscribe(var_key, update_direct)
+                return
+
+            # CASE 2: Template String (e.g. "Line: $active_line | Count: $count")
+            # We treat the result as a string and interpolate values.
+            unique_keys = set(matches)
             
+            def update_template(_=None):
+                final_text = val
+                # Sort keys by length (desc) to avoid partial replacement issues (e.g. $id inside $idx)
+                sorted_keys = sorted(unique_keys, key=len, reverse=True)
+                
+                for key in sorted_keys:
+                    # Get latest value from store, default to empty string
+                    store_val = self.state_store.get(key, "")
+                    final_text = final_text.replace(f"${key}", str(store_val))
+                
+                setter(final_text)
+
+            # Subscribe to ALL variables found in the string
+            for key in unique_keys:
+                self.state_store.subscribe(key, update_template)
+            
+            # Initial Run
+            update_template()
+
         else:
+            # Standard static property
             setter(val)
 
     def _attach_child(self, parent, child):
