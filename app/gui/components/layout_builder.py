@@ -103,6 +103,9 @@ class LayoutBuilder:
         else:
             instance = cls_or_instance
 
+        if hasattr(instance, "set_state_store"):
+            instance.set_state_store(self.state_store)
+
         if isinstance(instance, QWidget):
             instance.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
 
@@ -134,25 +137,20 @@ class LayoutBuilder:
 
         # --- FEATURE: State Binding ---
         if isinstance(val, str) and val.startswith("$"):
-            # It's a bound variable! e.g., "$username"
-            var_key = val[1:] # Remove '$'
+            var_key = val[1:] 
             
-            # Define the callback that updates this specific widget property
-            # We use partial/closure to capture the specific setter
             def update_widget(new_value):
-                # Ensure type safety if needed (e.g. converting str to int for some props)
-                # For now, we pass raw value
+                # FIX: Try raw value first (Essential for Lists/Dicts)
                 try:
-                    setter(str(new_value)) # Most Qt setters take strings or convert implicitly
-                except TypeError:
-                    # Fallback for strict types (like int/bool)
                     setter(new_value)
+                except TypeError:
+                    # Fallback: Convert to string (Useful for QLabels expecting text)
+                    setter(str(new_value))
 
             # Subscribe to the store
             self.state_store.subscribe(var_key, update_widget)
             
         else:
-            # Standard static property
             setter(val)
 
     def _attach_child(self, parent, child):
