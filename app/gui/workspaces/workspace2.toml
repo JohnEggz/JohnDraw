@@ -1,0 +1,23 @@
+root = "HMain"
+require = "../widgets/Test"
+
+[HMain]
+type = "QHBoxLayout"
+children = ["VLeft", "VRight"]
+
+[VLeft]
+type = "QVBoxLayout"
+children = ["Test", "HLeftDown"]
+
+[HLeftDown]
+type = "QHBoxLayout"
+children = ["Test", "Test"]
+
+[VRight]
+type = "QVBoxLayout"
+children = ["Test", "Test", "Test", "MyClock"]
+
+[MyClock]
+type = "custom_clock"       # This matches widgets/CustomClock.py
+objectName = "clock_widget"
+minimumHeight = 100

@@ -1,0 +1,30 @@
+root = "Main"
+
+[Main]
+type = "QVBoxLayout"
+children = ["Btn1", "Btn2"]
+
+[Btn1]
+type = "QPushButton"
+text = "Select Pen"
+# Uses standard 'clicked' signal
+on_clicked = "set_tool name=pen mode=draw"
+
+[Btn2]
+type = "flick_button"
+
+text = "Select Red"
+flick_right_text = "right"
+flick_left_text = "left"
+flick_up_text = "up"
+flick_down_text = "down"
+clicked_text = "hold"
+
+# Uses standard 'clicked' signal
+on_clicked = "set_color value='#FF0000' force"
+on_flick_up = "print up"
+on_flick_down = "print down"
+on_flick_left = "print left"
+on_flick_right = "print right"
+
+min_swipe_distance = 200

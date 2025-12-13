@@ -1,0 +1,14 @@
+root = "Main"
+
+[Main]
+type = "QVBoxLayout"
+children = ["MyClock", "CoolButton"]
+
+[MyClock]
+type = "CustomClock"        # This matches widgets/CustomClock.py
+objectName = "clock_widget"
+minimumHeight = 100
+
+[CoolButton]
+type = "QPushButton"
+on_press = "some API call" # Place for api call

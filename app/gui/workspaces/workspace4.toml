@@ -1,0 +1,5 @@
+root = "Main"
+
+[Main]
+type = "QVBoxLayout"
+children = ["Test", "Test"]
