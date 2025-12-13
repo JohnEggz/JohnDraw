@@ -18,17 +18,28 @@ class VectorCanvas(QWidget):
 
     def set_state_store(self, store):
         self.store = store
-        self.publish_state()
+        
+        # --- NEW: Restore State on Load ---
+        # 1. Check for existing drawings
+        existing_data = self.store.get("canvas_data")
+        if existing_data:
+            # We copy it so we don't accidentally mutate the store directly 
+            # without calling .set() (though in Python dicts are ref, so it's subtle)
+            self.data_slots = existing_data
+            
+        # 2. Check for active line index
+        saved_index = self.store.get("active_line")
+        if saved_index is not None:
+            self.active_index = int(saved_index)
+            
+        self.update() # Force repaint with loaded data
+        self.publish_state() # Ensure other widgets (like previews) get the data
 
     def publish_state(self):
         if self.store:
-            # 1. Publish current page for the main PreviewWidget
             current_data = self.data_slots.get(self.active_index, [])
             self.store.set("current_strokes", list(current_data))
-            
-            # 2. Publish ALL data for the LinesList previews
-            # We copy the dict to ensure state listeners trigger
-            self.store.set("canvas_data", self.data_slots.copy())
+            self.store.set("canvas_data", self.data_slots) # Save full dict
 
     def setActiveLine(self, index):
         try:
