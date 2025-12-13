@@ -5,7 +5,7 @@ import importlib
 import importlib.util
 from functools import partial
 from PyQt6.QtWidgets import QWidget, QLayout, QLabel
-from PyQt6.QtCore import Qt  # <--- FIX 1: Import Qt Core
+from PyQt6.QtCore import Qt
 
 # Import parser
 from app.core.command_parser import parse_command
@@ -20,10 +20,12 @@ except ImportError:
         tomllib = None
 
 class LayoutBuilder:
-    def __init__(self, workspace_name, base_dir, plugin_dir, command_handler=None):
+    # --- UPDATED INIT: Add state_store ---
+    def __init__(self, workspace_name, base_dir, plugin_dir, state_store, command_handler=None):
         self.workspace_name = workspace_name
         self.base_dir = base_dir
         self.plugin_dir = plugin_dir
+        self.state_store = state_store  # <--- Store reference
         self.command_handler = command_handler
         self.objects = {} 
         self.schema = {}
@@ -54,23 +56,14 @@ class LayoutBuilder:
         c.setObjectName("MainContainer")
         return c
 
-    # --- Resolution Logic ---
     def _resolve_type(self, type_name):
-        """
-        Dynamically imports PyQt6.QtWidgets to find the class.
-        This avoids top-level import issues.
-        """
         clean_name = type_name.strip().strip("'").strip('"')
-
-        # 1. Dynamic Import of QtWidgets
         try:
             qt_mod = importlib.import_module("PyQt6.QtWidgets")
             if hasattr(qt_mod, clean_name):
                 return getattr(qt_mod, clean_name)
         except ImportError as e:
             print(f"CRITICAL: Could not import PyQt6.QtWidgets: {e}")
-
-        # 2. Try Plugin
         return self._load_plugin(clean_name)
 
     def _load_plugin(self, widget_type):
@@ -78,7 +71,6 @@ class LayoutBuilder:
             os.path.join(self.plugin_dir, f"{widget_type}.py"),
             os.path.join(self.plugin_dir, f"{widget_type.lower()}.py") 
         ]
-
         for p in paths_to_try:
             if os.path.exists(p):
                 try:
@@ -100,7 +92,6 @@ class LayoutBuilder:
 
         data = self.schema[key]
         raw_type = data.get("type", "QWidget")
-        
         cls_or_instance = self._resolve_type(raw_type)
 
         if cls_or_instance is None:
@@ -112,7 +103,6 @@ class LayoutBuilder:
         else:
             instance = cls_or_instance
 
-        # --- FIX 2: Use Strict Enum Type ---
         if isinstance(instance, QWidget):
             instance.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
 
@@ -136,8 +126,34 @@ class LayoutBuilder:
         return instance
 
     def _set_property(self, instance, prop, val):
-        setter = getattr(instance, f"set{prop[0].upper()}{prop[1:]}", None)
-        if setter: setter(val)
+        setter_name = f"set{prop[0].upper()}{prop[1:]}"
+        setter = getattr(instance, setter_name, None)
+        
+        if not setter:
+            return
+
+        # --- FEATURE: State Binding ---
+        if isinstance(val, str) and val.startswith("$"):
+            # It's a bound variable! e.g., "$username"
+            var_key = val[1:] # Remove '$'
+            
+            # Define the callback that updates this specific widget property
+            # We use partial/closure to capture the specific setter
+            def update_widget(new_value):
+                # Ensure type safety if needed (e.g. converting str to int for some props)
+                # For now, we pass raw value
+                try:
+                    setter(str(new_value)) # Most Qt setters take strings or convert implicitly
+                except TypeError:
+                    # Fallback for strict types (like int/bool)
+                    setter(new_value)
+
+            # Subscribe to the store
+            self.state_store.subscribe(var_key, update_widget)
+            
+        else:
+            # Standard static property
+            setter(val)
 
     def _attach_child(self, parent, child):
         if isinstance(parent, QLayout):
@@ -150,7 +166,6 @@ class LayoutBuilder:
     def _connect_signal(self, instance, event, cmd):
         base = event[3:]
         candidates = [base + "ed", base, base + "d"]
-        
         for name in candidates:
             if hasattr(instance, name):
                 sig = getattr(instance, name)
@@ -169,11 +184,9 @@ class LayoutBuilder:
     def _load_and_merge_schema(self):
         def_path = os.path.join(self.base_dir, "defaults", "default")
         self.schema.update(self._load_file(def_path))
-        
         ws_path = os.path.join(self.base_dir, self.workspace_name)
         ws_data = self._load_file(ws_path)
         self.schema.update(ws_data)
-        
         reqs = ws_data.get("require", [])
         if isinstance(reqs, str): reqs = [reqs]
         for r in reqs:

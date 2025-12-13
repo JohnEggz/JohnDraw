@@ -1,0 +1,27 @@
+root = "Main"
+
+[Main]
+type = "QVBoxLayout"
+children = ["StatusDisplay", "ControlPanel"]
+
+[StatusDisplay]
+type = "QLabel"
+# BINDING: The text will automatically update when 'status' changes
+text = "$status"
+objectName = "status_lbl"
+
+[ControlPanel]
+type = "QHBoxLayout"
+children = ["BtnProcessing", "BtnDone"]
+
+[BtnProcessing]
+type = "QPushButton"
+text = "Start Process"
+# COMMAND: Updates the state
+on_click = "state set --key=status --value='Processing Data...'"
+
+[BtnDone]
+type = "QPushButton"
+text = "Finish"
+# COMMAND: Updates the state
+on_click = "state set --key=status --value='Ready'"

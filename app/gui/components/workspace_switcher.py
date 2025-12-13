@@ -1,8 +1,8 @@
 import os
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel
 from PyQt6.QtCore import Qt
-from app.core.router import CommandRouter
 from app.gui.components.layout_builder import LayoutBuilder
+from app.core.state_manager import StateStore # <--- Import
 
 class WorkspaceSwitcher(QWidget):
     def __init__(self, base_dir, plugin_dir):
@@ -10,16 +10,35 @@ class WorkspaceSwitcher(QWidget):
         self.base_dir = base_dir
         self.plugin_dir = plugin_dir
         self.current_ui = None
+        
+        # Initialize the Central State Store
+        self.state_store = StateStore() 
+        # Set some default values
+        self.state_store.set("app_version", "1.0.0")
+        self.state_store.set("status", "Ready")
+        
         self.layout = QVBoxLayout(self)
         self.layout.setContentsMargins(0, 0, 0, 0)
 
     def handle_api_command(self, cmd_obj):
         """
-        Application Logic (Controller)
+        Handles commands from the UI.
         """
-        print(f"⚡ EXEC: {cmd_obj.name}")
-        print(f"   Args:   {cmd_obj.args}")
-        print(f"   Kwargs: {cmd_obj.kwargs}")
+        print(f"⚡ EXEC: {cmd_obj.name} | Args: {cmd_obj.args} | Kwargs: {cmd_obj.kwargs}")
+
+        # --- FEATURE: State Management Command ---
+        # Command: state set --key=status --value="Processing..."
+        if cmd_obj.name == "state":
+            if "set" in cmd_obj.args:
+                key = cmd_obj.kwargs.get("key")
+                val = cmd_obj.kwargs.get("value")
+                if key and val:
+                    print(f"   -> Updating State: {key} = {val}")
+                    self.state_store.set(key, val)
+        
+        # Example: Mocking other commands
+        elif cmd_obj.name == "canvas":
+            self.state_store.set("status", f"Canvas Action: {cmd_obj.args}")
 
     def load_workspace(self, workspace_name):
         if not workspace_name: return
@@ -34,7 +53,8 @@ class WorkspaceSwitcher(QWidget):
                 workspace_name, 
                 base_dir=self.base_dir,
                 plugin_dir=self.plugin_dir,
-                command_handler=CommandRouter.process
+                state_store=self.state_store, # <--- Pass the store
+                command_handler=self.handle_api_command 
             )
             self.current_ui = builder.build()
             self.layout.addWidget(self.current_ui)
