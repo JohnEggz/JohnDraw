@@ -1,0 +1,30 @@
+root = "Main"
+
+[Main]
+type = "QHBoxLayout"
+children = ["LeftPanel", "RightPanel"]
+
+[LeftPanel]
+type = "QVBoxLayout"
+children = ["Title", "MyLines"]
+
+[Title]
+type = "QLabel"
+text = "LAYERS"
+
+[MyLines]
+type = "lines_list"
+activeLine = "$active_line"
+on_select_0 = "state set --key=active_line --value=0"
+on_select_1 = "state set --key=active_line --value=1"
+on_select_2 = "state set --key=active_line --value=2"
+on_select_3 = "state set --key=active_line --value=3"
+on_select_4 = "state set --key=active_line --value=4"
+
+[RightPanel]
+type = "QVBoxLayout"
+children = ["MyCanvas"]
+
+[MyCanvas]
+type = "vector_canvas"
+activeLine = "$active_line"
