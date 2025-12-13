@@ -11,7 +11,6 @@ class VectorCanvas(QWidget):
         self.setMinimumSize(400, 300)
         self.setStyleSheet("background-color: white; border: 1px solid #ccc;")
         
-        # We no longer pre-fill 5 slots. It grows dynamically.
         self.data_slots = {} 
         self.active_index = 0
         self.current_stroke = []
@@ -23,9 +22,13 @@ class VectorCanvas(QWidget):
 
     def publish_state(self):
         if self.store:
-            # Safely get data, defaulting to empty list
+            # 1. Publish current page for the main PreviewWidget
             current_data = self.data_slots.get(self.active_index, [])
             self.store.set("current_strokes", list(current_data))
+            
+            # 2. Publish ALL data for the LinesList previews
+            # We copy the dict to ensure state listeners trigger
+            self.store.set("canvas_data", self.data_slots.copy())
 
     def setActiveLine(self, index):
         try:
@@ -47,9 +50,7 @@ class VectorCanvas(QWidget):
 
     def mouseReleaseEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton and self.current_stroke:
-            # FIX: Automatically create the list if it doesn't exist yet
             self.data_slots.setdefault(self.active_index, []).append(self.current_stroke)
-            
             self.current_stroke = []
             self.update()
             self.publish_state()
@@ -60,7 +61,6 @@ class VectorCanvas(QWidget):
         pen = QPen(Qt.GlobalColor.black, 2)
         painter.setPen(pen)
 
-        # Safely retrieve data
         active_strokes = self.data_slots.get(self.active_index, [])
         for stroke in active_strokes:
             if len(stroke) > 1:
