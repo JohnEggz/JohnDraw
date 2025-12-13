@@ -26,15 +26,10 @@ class WorkspaceSwitcher(QWidget):
     def load_workspace(self, workspace_name):
         if not workspace_name: return
         
-        # 1. Cleanup old UI
         if self.current_ui:
             self.layout.removeWidget(self.current_ui)
             self.current_ui.deleteLater()
             self.current_ui = None
-
-        # 2. Cleanup old Listeners (The Fix)
-        # This prevents the store from trying to update widgets that are about to die
-        self.state_store.clear_listeners()
 
         try:
             builder = LayoutBuilder(
@@ -42,6 +37,7 @@ class WorkspaceSwitcher(QWidget):
                 base_dir=self.base_dir,
                 plugin_dir=self.plugin_dir,
                 state_store=self.state_store,
+                # 2. Pass the Dispatcher Method
                 command_handler=self.dispatcher.dispatch 
             )
             self.current_ui = builder.build()
