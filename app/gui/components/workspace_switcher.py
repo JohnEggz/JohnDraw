@@ -1,6 +1,7 @@
 import os
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel
 from PyQt6.QtCore import Qt
+from app.core.router import CommandRouter
 from app.gui.components.layout_builder import LayoutBuilder
 
 class WorkspaceSwitcher(QWidget):
@@ -33,7 +34,7 @@ class WorkspaceSwitcher(QWidget):
                 workspace_name, 
                 base_dir=self.base_dir,
                 plugin_dir=self.plugin_dir,
-                command_handler=self.handle_api_command 
+                command_handler=CommandRouter.process
             )
             self.current_ui = builder.build()
             self.layout.addWidget(self.current_ui)

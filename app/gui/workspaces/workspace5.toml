@@ -1,0 +1,12 @@
+root = "Main"
+
+[Main]
+type = "QHBoxLayout"
+children = ["My_Display", "MyButton"]
+
+[MyButton]
+type = "QPushButton"
+on_clicked = "my_counter increment"
+
+[My_Display]
+type = "CounterDisplay"
