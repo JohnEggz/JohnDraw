@@ -16,15 +16,10 @@ text = "LAYERS"
 [MyLines]
 type = "lines_list"
 activeLine = "$active_line"
-on_select_0 = "state set --key=active_line --value=0"
-on_select_1 = "state set --key=active_line --value=1"
-on_select_2 = "state set --key=active_line --value=2"
-on_select_3 = "state set --key=active_line --value=3"
-on_select_4 = "state set --key=active_line --value=4"
 
 [PreviewLabel]
 type = "QLabel"
-text = "PREVIEW (Cropped)"
+text = "PREVIEW"
 
 [MyPreview]
 type = "preview_widget"
