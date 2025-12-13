@@ -1,0 +1,21 @@
+root = "MainLayout"
+
+[MainLayout]
+type = "QVBoxLayout"
+children = ["CountDisplay", "InteractContainer"]
+
+[CountDisplay]
+type = "QLabel"
+text = "$count"
+
+[InteractContainer]
+type = "QHBoxLayout"
+children = ["TheFlicker"]
+
+[TheFlicker]
+type = "flick_button"
+text = "FLICK ME\n(Up/Down)"
+
+on_flick_up = "state math --key=count --op=add --val=1"
+on_flick_down = "state math --key=count --op=sub --val=1"
+on_clicked = "state set --key=count --value=0"

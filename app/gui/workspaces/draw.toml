@@ -1,0 +1,12 @@
+root = "Main"
+
+[Main]
+type = "QVBoxLayout"
+children = ["Header", "MyCanvas"]
+
+[Header]
+type = "QLabel"
+text = "Vector Drawing Test"
+
+[MyCanvas]
+type = "vector_canvas"
