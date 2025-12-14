@@ -18,10 +18,12 @@ class VectorCanvas(QWidget):
         
         # Panning State
         self.offset = QPoint(0, 0)
-        self.grid_spacing = 19 
+        self.grid_spacing = 19
+        self.margin_px = 76 
 
     def set_state_store(self, store):
         self.store = store
+        self.store.set("active_canvas_ref", self)
         
         existing_data = self.store.get("canvas_data")
         if existing_data:
@@ -31,27 +33,67 @@ class VectorCanvas(QWidget):
         if saved_index is not None:
             self.active_index = int(saved_index)
 
-        saved_offset = self.store.get("canvas_offset")
-        if saved_offset:
-            self.offset = QPoint(saved_offset[0], saved_offset[1])
+        # Only recenter on initial load/reload
+        self.recenter_view()
             
         self.update() 
         self.publish_state()
+
+    # --- NEW: CLI Command Handler ---
+    def move_canvas(self, x=0, y=0, animate=False):
+        """
+        Adjusts the offset by x/y.
+        Called by the ActionDispatcher via a direct method call or property.
+        """
+        # In a real app, you might tween this value if animate=True
+        new_x = self.offset.x() + int(x)
+        new_y = self.offset.y() + int(y)
+        self.offset = QPoint(new_x, new_y)
+        self.update()
+        # We don't necessarily save offset to store on every frame of animation
+        # but for single moves, we can.
+        if self.store:
+            self.store.set("canvas_offset", (self.offset.x(), self.offset.y()))
 
     def publish_state(self):
         if self.store:
             current_data = self.data_slots.get(self.active_index, [])
             self.store.set("current_strokes", list(current_data))
             self.store.set("canvas_data", self.data_slots)
-            self.store.set("canvas_offset", (self.offset.x(), self.offset.y()))
 
     def setActiveLine(self, index):
         try:
             self.active_index = int(index)
+            # Re-center when switching context
+            self.recenter_view()
             self.update()
             self.publish_state()
         except ValueError:
             pass
+            
+    def recenter_view(self):
+        center_y = int(self.height() / 2)
+        
+        active_strokes = self.data_slots.get(self.active_index, [])
+        
+        if not active_strokes:
+            max_x = 0
+        else:
+            max_x = float('-inf')
+            found_points = False
+            for stroke in active_strokes:
+                for p in stroke:
+                    found_points = True
+                    if p.x() > max_x: max_x = p.x()
+            if not found_points: max_x = 0
+        
+        target_x = self.width() - self.margin_px - max_x
+        self.offset = QPoint(int(target_x), center_y)
+
+    def resizeEvent(self, event):
+        # Optional: Decide if resize should snap or just keep relative offset
+        self.recenter_view()
+        super().resizeEvent(event)
 
     def mousePressEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
@@ -69,14 +111,13 @@ class VectorCanvas(QWidget):
         if event.button() == Qt.MouseButton.LeftButton and self.current_stroke:
             self.data_slots.setdefault(self.active_index, []).append(self.current_stroke)
             self.current_stroke = []
+            # Note: No recenter_view() here anymore!
             self.update()
             self.publish_state()
 
     def _draw_grid(self, painter):
-        # Light blue grid lines
         painter.setPen(QPen(QColor("#e0e0e0"), 1))
         
-        # Calculate viewport bounds in World Coordinates
         left = -self.offset.x()
         top = -self.offset.y()
         right = left + self.width()
@@ -94,15 +135,9 @@ class VectorCanvas(QWidget):
     def paintEvent(self, event):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-        
-        # 1. Apply Transformation
         painter.translate(self.offset)
-
-        # 2. Draw Grid
         self._draw_grid(painter)
 
-        # 3. Draw Axis (Red Horizontal Line at Y=0)
-        # We calculate the visible left/right bounds so the line always spans the screen
         left_bound = -self.offset.x()
         right_bound = -self.offset.x() + self.width()
         
@@ -110,7 +145,6 @@ class VectorCanvas(QWidget):
         painter.setPen(red_pen)
         painter.drawLine(int(left_bound), 0, int(right_bound), 0)
 
-        # 4. Draw Strokes
         black_pen = QPen(Qt.GlobalColor.black, 2)
         painter.setPen(black_pen)
 

@@ -13,23 +13,6 @@ maxWidth = 200
 type = "QLabel"
 text = "LAYERS"
 
-[MyLines]
-type = "lines_list"
-activeLine = "$active_line"
-
-[PreviewLabel]
-type = "QLabel"
-text = "PREVIEW"
-
-[MyPreview]
-type = "preview_widget"
-strokes = "$current_strokes"
-minHeight = 150
-
 [RightPanel]
 type = "QVBoxLayout"
 children = ["MyCanvas"]
-
-[MyCanvas]
-type = "vector_canvas"
-activeLine = "$active_line"

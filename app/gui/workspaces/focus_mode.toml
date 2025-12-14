@@ -15,7 +15,3 @@ text = "FOCUS MODE"
 [Status]
 type = "QLabel"
 text = "Line: $active_line"
-
-[MyCanvas]
-type = "vector_canvas"
-activeLine = "$active_line"

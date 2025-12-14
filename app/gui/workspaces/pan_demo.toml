@@ -1,0 +1,20 @@
+root = "Main"
+
+[Main]
+type = "QHBoxLayout"
+children = ["Controls", "MyCanvas"]
+
+[Controls]
+type = "QVBoxLayout"
+children = ["PanControl"]
+maxWidth = 150
+
+[PanControl]
+type = "flick_button"
+text = "PAN CANVAS"
+
+on_flick_right = "canvas move --x=50 --y=0"
+on_flick_left = "canvas move --x=-50 --y=0"
+on_flick_down = "canvas move --x=0 --y=50"
+on_flick_up = "canvas move --x=0 --y=-50"
+on_press = "canvas move --x=10 --y=10"

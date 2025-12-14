@@ -51,10 +51,26 @@ class ActionDispatcher:
         """
         Example: canvas move --x=10 --y=20
         """
-        # This is where you'd hook into your actual Canvas widget logic.
-        # For now, we just update state to show it works.
-        action = cmd.args[0] if cmd.args else "unknown"
-        self.state_store.set("status", f"Canvas {action}: {cmd.kwargs}")
+        # Retrieve the python object reference
+        canvas_widget = self.state_store.get("active_canvas_ref")
+        
+        if not canvas_widget:
+            print("⚠️ No active canvas found to move.")
+            return
+
+        if "move" in cmd.args:
+            # Parse args with defaults
+            x = int(cmd.kwargs.get("x", 0))
+            y = int(cmd.kwargs.get("y", 0))
+            animate = "animate" in cmd.flags
+            
+            # Call the method directly
+            try:
+                canvas_widget.move_canvas(x, y, animate)
+            except AttributeError:
+                print("⚠️ Active widget does not support 'move_canvas'")
+            except Exception as e:
+                print(f"❌ Canvas Move Error: {e}")
 
     def handle_app(self, cmd):
         """

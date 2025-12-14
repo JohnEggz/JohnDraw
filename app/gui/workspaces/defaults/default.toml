@@ -1,3 +1,20 @@
 [Test]
 type = "QWidget"
 objectName = "test"
+
+[MyPreview]
+type = "preview_widget"
+strokes = "$current_strokes"
+minHeight = 150
+
+[MyCanvas]
+type = "vector_canvas"
+activeLine = "$active_line"
+
+[MyLines]
+type = "lines_list"
+activeLine = "$active_line"
+
+[PreviewLabel]
+type = "QLabel"
+text = "PREVIEW"
