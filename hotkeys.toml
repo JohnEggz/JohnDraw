@@ -1,0 +1,177 @@
+# TOOLS
+[[hotkeys]]
+name = "Pen Tool"
+action = "set_tool_pen"
+keys = ["d"]
+
+[[hotkeys]]
+name = "Eraser"
+action = "set_tool_eraser"
+keys = ["e"]
+
+[[hotkeys]]
+name = "Lasso Selection"
+action = "set_tool_lasso"
+keys = ["s"]
+
+[[hotkeys]]
+name = "Move Selection"
+action = "set_tool_move"
+keys = ["m"]
+
+[[hotkeys]]
+name = "Resize Selection"
+action = "set_tool_resize"
+keys = ["r"]
+
+[[hotkeys]]
+name = "Line Tool"
+action = "set_tool_line"
+keys = ["wl", "z"]
+
+[[hotkeys]]
+name = "Circle Tool"
+action = "set_tool_circle"
+keys = ["wc", "c"]
+
+[[hotkeys]]
+name = "Rectangle Tool"
+action = "set_tool_rectangle"
+keys = ["wr", "x"]
+
+# TRAVEL TOOLS
+[[hotkeys]]
+name = "Travel (Temporary)"
+action = "set_tool_travel"
+keys = ["<Space>"]
+trigger = "hold"
+
+[[hotkeys]]
+name = "Travel (Persistent)"
+action = "set_tool_travel"
+keys = ["v"]
+trigger = "press"
+
+# ANCHORS
+[[hotkeys]]
+name = "Anchor: Center"
+action = "set_anchor_center"
+keys = ["ac"]
+
+[[hotkeys]]
+name = "Anchor: Vertex"
+action = "set_anchor_vertex"
+keys = ["av"]
+
+[[hotkeys]]
+name = "Anchor: Edge"
+action = "set_anchor_edge"
+keys = ["ae"]
+
+# NAVIGATION
+[[hotkeys]]
+name = "Go Home"
+action = "go_home"
+keys = ["gh", "H", "gg"]
+
+[[hotkeys]]
+name = "Jump to New Line"
+action = "go_to_newline"
+keys = ["<Tab>", "G"]
+
+[[hotkeys]]
+name = "Pan Left"
+action = "pan_left"
+keys = ["h"]
+
+[[hotkeys]]
+name = "Pan Right"
+action = "pan_right"
+keys = ["l"]
+
+[[hotkeys]]
+name = "Pan Up"
+action = "pan_up"
+keys = ["k"]
+
+[[hotkeys]]
+name = "Pan Down"
+action = "pan_down"
+keys = ["j"]
+
+[[hotkeys]]
+name = "Zoom In"
+action = "zoom_in"
+keys = ["+", "=", "<C-+>", "<C-=>"]
+
+[[hotkeys]]
+name = "Zoom Out"
+action = "zoom_out"
+keys = ["-", "<C-->"]
+
+[[hotkeys]]
+name = "Reset Zoom"
+action = "zoom_reset"
+keys = ["0", "<C-0>"]
+
+# HISTORY
+[[hotkeys]]
+name = "Undo"
+action = "undo"
+keys = ["u", "<C-z>"]
+
+[[hotkeys]]
+name = "Redo"
+action = "redo"
+keys = ["<C-r>", "<C-S-z>"]
+
+# COMMANDS
+[[hotkeys]]
+name = "Delete Selected"
+action = "delete_selected"
+keys = ["<Del>"]
+
+[[hotkeys]]
+name = "Escape / Clear"
+action = "escape"
+keys = ["<Esc>"]
+
+[[hotkeys]]
+name = "Save"
+action = "save_file"
+keys = ["<C-s>"]
+
+[[hotkeys]]
+name = "New Canvas"
+action = "new_file"
+keys = ["<C-n>"]
+
+[[hotkeys]]
+name = "Open File"
+action = "open_file"
+keys = ["<C-o>"]
+
+[[hotkeys]]
+name = "Copy Selection"
+action = "copy_selection"
+keys = ["y", "<C-c>"]
+
+[[hotkeys]]
+name = "Paste Clipboard"
+action = "paste_clipboard"
+keys = ["p", "<C-v>"]
+
+[[hotkeys]]
+name = "Command Palette"
+action = "show_command_palette"
+keys = ["<C-e>"]
+
+[[hotkeys]]
+name = "Show Help"
+action = "show_help"
+keys = ["<C-k>", "?"]
+
+[[hotkeys]]
+name = "Settings"
+action = "open_settings"
+keys = ["<C-,>"]
